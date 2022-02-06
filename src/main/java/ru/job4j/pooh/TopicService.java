@@ -16,6 +16,7 @@ public class TopicService implements Service {
             for (Map.Entry<String, ConcurrentLinkedQueue<String>> entry
                     : topics.get(req.getSourceName()).entrySet()) {
                 entry.getValue().add(req.getParam());
+                rsl = new Resp("", "200");
             }
         } else {
            topics.putIfAbsent(req.getSourceName(),

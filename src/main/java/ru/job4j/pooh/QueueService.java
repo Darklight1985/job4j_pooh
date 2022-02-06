@@ -9,15 +9,16 @@ public class QueueService implements Service {
 
     @Override
     public Resp process(Req req) {
-        Resp rsl = null;
+        Resp rsl;
         if ("POST".equals(req.httpRequestType())) {
             queue.putIfAbsent(req.getSourceName(), new ConcurrentLinkedDeque<>());
             queue.get(req.getSourceName()).addLast(req.getParam());
+            rsl = new Resp("", "200");
         } else {
-                if (!"null".equals(queue.get(req.getSourceName()).getLast())) {
+                if (!queue.get(req.getSourceName()).getLast().isEmpty()) {
                     rsl = new Resp(queue.get(req.getSourceName()).pollLast(), "200");
                 } else {
-                    rsl = new Resp("no data", "204");
+                    rsl = new Resp("", "204");
                 }
             }
         return rsl;
