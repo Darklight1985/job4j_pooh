@@ -2,7 +2,10 @@ package ru.job4j.pooh;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static java.util.Objects.nonNull;
 
 public class TopicService implements Service {
     private final ConcurrentHashMap<String,
@@ -12,23 +15,30 @@ public class TopicService implements Service {
     @Override
     public Resp process(Req req) {
         Resp rsl = null;
-        if ("POST".equals(req.httpRequestType())) {
-            for (Map.Entry<String, ConcurrentLinkedQueue<String>> entry
-                    : topics.get(req.getSourceName()).entrySet()) {
-                entry.getValue().add(req.getParam());
-                rsl = new Resp("", "200");
-            }
-        } else {
-           topics.putIfAbsent(req.getSourceName(),
-                   new ConcurrentHashMap<>());
-                if (topics.get(req.getSourceName())
-                        .putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>()) != null) {
-                   rsl = new Resp(topics.get(req.getSourceName())
-                            .get(req.getParam()).poll(), "200");
-                } else {
-                   rsl = new Resp("", "204");
+        switch (req.httpRequestType()) {
+            case "POST":
+                for (Map.Entry<String, ConcurrentLinkedQueue<String>> entry
+                        : topics.get(req.getSourceName()).entrySet()) {
+                    entry.getValue().add(req.getParam());
+                    rsl = new Resp("", "200");
                 }
-            }
+                break;
+            case "GET":
+                topics.putIfAbsent(req.getSourceName(),
+                        new ConcurrentHashMap<>());
+                topics.get(req.getSourceName())
+                        .putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
+                String answer = topics.get(req.getSourceName())
+                        .get(req.getParam()).poll();
+                if (nonNull(answer)) {
+                    rsl = new Resp(answer, "200");
+                } else {
+                    rsl = new Resp("", "204");
+                }
+                break;
+            default:
+                rsl = new Resp("", "501");
+        }
         return rsl;
     }
 }

@@ -1,5 +1,11 @@
 package ru.job4j.pooh;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static java.util.Objects.nonNull;
+
 public class Req {
 
     private final String httpRequestType;
@@ -25,20 +31,15 @@ public class Req {
 
         String[] strings = content.split(System.lineSeparator());
         String[] stroka = strings[0].split("/");
-        String param;
-        String httpRequestType = content.startsWith("POST") ? "POST" : "GET";
         String poohMode = stroka[1];
         String sourcName = stroka[2].split(" ")[0];
-        if (httpRequestType.equals("GET")) {
-            if (stroka.length > 4) {
-                param = stroka[3].split(" ")[0];
-            } else {
-                param = "";
-            }
-        } else {
-            param = strings[7];
-        }
-
+        String httpRequestType = stroka[0].trim();
+        String param = switch (httpRequestType) {
+            case "POST" -> strings[7];
+            case "GET" ->
+               (stroka.length > 4) ? stroka[3].split(" ")[0] : "";
+            default -> "";
+        };
         return new Req(httpRequestType, poohMode, sourcName, param);
     }
 
