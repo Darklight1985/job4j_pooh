@@ -14,7 +14,7 @@ public class QueueService implements Service {
             case "POST":
                 queue.putIfAbsent(req.getSourceName(), new ConcurrentLinkedDeque<>());
                 queue.get(req.getSourceName()).addLast(req.getParam());
-                rsl = new Resp(queue.get(req.getSourceName()).getLast(), "200");
+                rsl = new Resp(req.getParam(), "200");
                 break;
             case "GET":
                 if (!queue.get(req.getSourceName()).isEmpty()) {
